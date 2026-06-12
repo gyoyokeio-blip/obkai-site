@@ -142,6 +142,40 @@
   .cta-btn:hover { transform: translateY(-3px) !important; box-shadow: 0 0 80px rgba(212,175,55,0.7); }
   .cta-sub { margin-top: 1.4rem; font-size: 0.7rem; color: #555; letter-spacing: 0.2em; opacity: 0; }
 
+  /* ===== LINE Open Chat ===== */
+  .line-card {
+    margin-top: 3.5rem; width: min(420px, 92vw);
+    background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+    border: 1px solid rgba(6,199,85,0.4);
+    border-radius: 22px; padding: 2.4rem 2rem 2.2rem;
+    box-shadow: 0 0 50px rgba(6,199,85,0.12);
+    opacity: 0; transform: translateY(40px);
+  }
+  .line-card .line-badge {
+    display: inline-block; font-size: 0.62rem; letter-spacing: 0.35em;
+    color: #06C755; border: 1px solid rgba(6,199,85,0.5);
+    border-radius: 999px; padding: 0.4rem 1.1rem; margin-bottom: 1.2rem;
+  }
+  .line-card h3 { font-size: 1.25rem; font-weight: 800; line-height: 1.5; }
+  .line-card .line-sub { margin-top: 0.6rem; font-size: 0.75rem; color: var(--dim); letter-spacing: 0.15em; }
+  .qr-wrap {
+    margin: 1.8rem auto 0; width: 200px; height: 200px;
+    background: #fff; border-radius: 14px; padding: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qr-wrap img, .qr-wrap canvas { display: block; width: 100% !important; height: 100% !important; }
+  .qr-hint { margin-top: 0.9rem; font-size: 0.66rem; letter-spacing: 0.3em; color: #5a628a; }
+  .line-btn {
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    margin-top: 1.8rem; padding: 1.15rem 1.5rem;
+    font-size: 0.95rem; font-weight: 800; letter-spacing: 0.1em;
+    color: #fff; background: #06C755; text-decoration: none;
+    border-radius: 12px; box-shadow: 0 0 36px rgba(6,199,85,0.45);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .line-btn:hover { transform: translateY(-2px); box-shadow: 0 0 56px rgba(6,199,85,0.7); }
+  .line-note { margin-top: 1.1rem; font-size: 0.64rem; color: #555; letter-spacing: 0.15em; }
+
   footer {
     position: relative; z-index: 2; text-align: center;
     padding: 8vh 6vw 12vh; color: #444; font-size: 0.72rem;
@@ -196,6 +230,25 @@
       <a class="cta-btn" href="#" onclick="alert('（ここにOB・OG会員登録フォームへのリンクが入ります）'); return false;">OB・OG登録</a>
       <p class="cta-sub">— LINEオープンチャットでもつながれます —</p>
     </section>
+
+    <!-- LINE OPEN CHAT -->
+    <section>
+      <div class="label">LINE Open Chat</div>
+      <h2 class="reveal" data-split="lines">いつでも、<br>同窓とつながる。</h2>
+      <div class="line-card" id="line-card">
+        <span class="line-badge">LINE OPEN CHAT</span>
+        <h3>杏葉硬式庭球会OB会<br>オープンチャット</h3>
+        <p class="line-sub">「○○期 氏名」の形式で登録してください</p>
+        <div class="qr-wrap"><div id="qrcode"></div></div>
+        <p class="qr-hint">スマホでスキャン</p>
+        <a class="line-btn" id="line-join"
+           href="https://line.me/ti/g2/frPhiYPq_SZDKSpLNRR5Xpt1p_4_t91OkfmN3g?utm_source=invitation&utm_medium=link_copy&utm_campaign=default"
+           target="_blank" rel="noopener">
+          オープンチャットに参加する →
+        </a>
+        <p class="line-note">スマホからはタップでLINEアプリが開きます</p>
+      </div>
+    </section>
   </main>
 
   <footer>
@@ -207,6 +260,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
   gsap.registerPlugin(ScrollTrigger);
 
@@ -331,13 +385,26 @@
   }
 
   /* ============ SCROLL REVEALS ============ */
-  gsap.utils.toArray('.body-text, .stat, .cta-btn, .cta-sub').forEach(el => {
+  gsap.utils.toArray('.body-text, .stat, .cta-btn, .cta-sub, .line-card').forEach(el => {
     gsap.to(el, {
       opacity: 1, y: 0, duration: 1, ease: 'power2.out',
       stagger: 0.1,
       scrollTrigger: { trigger: el, start: 'top 86%' }
     });
   });
+
+  /* ============ LINE Open Chat QR ============ */
+  (function makeQR() {
+    const el = document.getElementById('qrcode');
+    const url = document.getElementById('line-join').getAttribute('href');
+    if (el && window.QRCode) {
+      new QRCode(el, {
+        text: url, width: 176, height: 176,
+        colorDark: '#05060a', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+  })();
 
   /* ============ NEWS: load from Google Sheets ============ */
   (function loadNews() {
