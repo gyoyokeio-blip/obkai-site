@@ -331,6 +331,45 @@
     const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xfff0c0, size: 0.07, transparent: true, opacity: 0.85 }));
     scene.add(dust);
 
+    // particle tennis ball traveling with the camera
+    const ball = new THREE.Group();
+    const BALL_R = 0.55;
+
+    // ball body: points scattered on the sphere surface (fluorescent yellow)
+    const bodyGeo = new THREE.BufferGeometry();
+    const BODY_N = 1100, bodyPos = new Float32Array(BODY_N * 3);
+    for (let i = 0; i < BODY_N; i++) {
+      const u = Math.random() * 2 - 1;            // uniform on sphere
+      const th = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(1 - u * u);
+      bodyPos[i*3]   = r * Math.cos(th) * BALL_R;
+      bodyPos[i*3+1] = r * Math.sin(th) * BALL_R;
+      bodyPos[i*3+2] = u * BALL_R;
+    }
+    bodyGeo.setAttribute('position', new THREE.BufferAttribute(bodyPos, 3));
+    ball.add(new THREE.Points(bodyGeo, new THREE.PointsMaterial({
+      color: 0xccff33, size: 0.035, transparent: true, opacity: 0.9
+    })));
+
+    // seam: classic tennis-ball curve, drawn with white points
+    const seamGeo = new THREE.BufferGeometry();
+    const SEAM_N = 400, seamPos = new Float32Array(SEAM_N * 3);
+    for (let i = 0; i < SEAM_N; i++) {
+      const t2 = (i / SEAM_N) * Math.PI * 2;
+      const v = new THREE.Vector3(
+        0.78 * Math.cos(t2) + 0.22 * Math.cos(3 * t2),
+        0.78 * Math.sin(t2) - 0.22 * Math.sin(3 * t2),
+        0.6 * Math.sin(2 * t2)
+      ).normalize().multiplyScalar(BALL_R * 1.01);
+      seamPos[i*3] = v.x; seamPos[i*3+1] = v.y; seamPos[i*3+2] = v.z;
+    }
+    seamGeo.setAttribute('position', new THREE.BufferAttribute(seamPos, 3));
+    ball.add(new THREE.Points(seamGeo, new THREE.PointsMaterial({
+      color: 0xffffff, size: 0.045, transparent: true, opacity: 0.95
+    })));
+
+    scene.add(ball);
+
     let target = 0, cur = 0;
     function onScroll() {
       const max = document.documentElement.scrollHeight - innerHeight;
@@ -340,11 +379,23 @@
     addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 
+    const UP = new THREE.Vector3(0, 1, 0);
     (function animate(t) {
       cur += (target - cur) * 0.06;
       const p = Math.min(cur, 0.999);
       camera.position.copy(curve.getPointAt(p));
       camera.lookAt(curve.getPointAt(Math.min(p + 0.02, 1)));
+
+      // ball rides ahead of the camera, slightly off-center, rolling as we scroll
+      const bp = Math.min(p + 0.014, 1);
+      const ballPoint = curve.getPointAt(bp);
+      const tangent = curve.getTangentAt(bp);
+      const side = new THREE.Vector3().crossVectors(tangent, UP).normalize();
+      ball.position.copy(ballPoint)
+        .addScaledVector(side, 0.85)
+        .addScaledVector(UP, -0.35 + Math.sin(t * 0.0012) * 0.12);
+      ball.rotation.x = t * 0.0006 + cur * 40;
+      ball.rotation.y = t * 0.0004;
 
       const hue = (0.12 + cur * 0.75) % 1; // gold -> magenta -> cyan
       tube.material.color.setHSL(hue, 0.65, 0.55);
