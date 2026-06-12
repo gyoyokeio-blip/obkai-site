@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>杏葉硬式庭球会OB会 — LEGACY NEVER ENDS</title>
+<style>
+  :root {
+    --bg: #030409;
+    --fg: #eef1ff;
+    --gold: #d4af37;
+    --cyan: #4de8ff;
+    --magenta: #ff3d7f;
+    --dim: #8a93b8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Helvetica Neue", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== boot screen ===== */
+  #boot {
+    position: fixed; inset: 0; z-index: 100;
+    background: #000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 18px;
+    font-family: "Courier New", monospace;
+  }
+  #boot .logs { color: #3dff7c; font-size: 0.8rem; line-height: 1.9; text-align: left; min-height: 9em; }
+  #boot .bar { width: min(420px, 70vw); height: 2px; background: #222; overflow: hidden; }
+  #boot .bar i { display: block; height: 100%; width: 0%; background: var(--gold); }
+  #boot .ver { color: #555; font-size: 0.65rem; letter-spacing: 0.3em; }
+
+  /* ===== fixed canvases ===== */
+  #bg-canvas { position: fixed; inset: 0; z-index: 0; display: block; }
+  .vignette {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.75) 100%);
+  }
+  .scanlines {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.06;
+    background: repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 3px);
+  }
+  #progress {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+    background: linear-gradient(90deg, var(--gold), var(--magenta));
+    z-index: 50; box-shadow: 0 0 14px var(--gold);
+  }
+
+  main { position: relative; z-index: 2; }
+  section {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 12vh 6vw; text-align: center;
+  }
+
+  .label {
+    font-size: 0.72rem; letter-spacing: 0.55em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 1.6rem;
+  }
+  .label::before, .label::after { content: "—"; margin: 0 0.8em; color: #444; }
+
+  /* ===== hero ===== */
+  .hero h1 {
+    font-size: clamp(3rem, 13vw, 11rem);
+    font-weight: 900; line-height: 0.95; letter-spacing: -0.02em;
+    background: linear-gradient(180deg, #fff 30%, #8fa3ff 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 30px rgba(108,140,255,0.4));
+  }
+  .hero .char { display: inline-block; transform: translateY(115%) rotate(6deg); opacity: 0; }
+  .hero .word { display: inline-block; overflow: hidden; }
+  .tagline {
+    margin-top: 2.2rem; font-size: clamp(1rem, 2.4vw, 1.6rem);
+    letter-spacing: 0.35em; color: var(--dim); opacity: 0; transform: translateY(24px);
+  }
+  .tagline strong { color: var(--fg); font-weight: 700; }
+  .hero .site-name {
+    margin-top: 1.6rem; font-size: clamp(0.85rem, 1.6vw, 1.1rem);
+    letter-spacing: 0.5em; color: var(--gold);
+    opacity: 0; filter: blur(10px); transform: translateY(10px);
+    text-shadow: 0 0 24px rgba(212,175,55,0.5);
+  }
+
+  /* glitch */
+  .glitch { position: relative; display: inline-block; }
+  .glitch::before, .glitch::after {
+    content: attr(data-text);
+    position: absolute; inset: 0;
+    background: inherit; -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    clip-path: inset(0 0 0 0); opacity: 0;
+  }
+  .glitching::before { opacity: 0.8; transform: translate(-4px, 2px); clip-path: inset(20% 0 40% 0); filter: drop-shadow(0 0 6px var(--cyan)); }
+  .glitching::after  { opacity: 0.8; transform: translate(4px, -2px);  clip-path: inset(60% 0 10% 0); filter: drop-shadow(0 0 6px var(--magenta)); }
+
+  /* ===== generic reveal headings ===== */
+  .reveal {
+    font-size: clamp(1.9rem, 6vw, 4.6rem);
+    font-weight: 800; line-height: 1.12; max-width: 18ch;
+  }
+  .reveal .line { display: block; overflow: hidden; }
+  .reveal .line > span { display: inline-block; transform: translateY(112%); }
+  .body-text {
+    margin-top: 1.8rem; font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+    color: var(--dim); max-width: 46ch; line-height: 2;
+    opacity: 0; transform: translateY(20px);
+  }
+  .body-text em { font-style: normal; color: var(--gold); }
+
+
+  /* ===== news cards ===== */
+  .cards {
+    display: grid; gap: 1.4rem; margin-top: 3.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 90vw), 1fr));
+    width: min(1080px, 92vw);
+  }
+  .card {
+    text-align: left; padding: 2rem 1.8rem;
+    border: 1px solid rgba(212,175,55,0.25);
+    background: linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    backdrop-filter: blur(6px);
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+    opacity: 0; transform: translateY(40px);
+    text-decoration: none; color: inherit; cursor: pointer;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .card:hover { border-color: var(--gold); box-shadow: 0 0 40px rgba(212,175,55,0.18); }
+  .card .tag { font-size: 0.62rem; letter-spacing: 0.4em; color: var(--magenta); }
+  .card h3 { margin: 0.9rem 0 0; font-size: 1.25rem; font-weight: 800; line-height: 1.4; }
+  .card .date { display: block; margin-top: 1.4rem; font-size: 0.68rem; color: #555; letter-spacing: 0.2em; }
+  .news-status { color: var(--dim); font-size: 0.85rem; letter-spacing: 0.1em; margin-top: 3.5rem; }
+
+  /* ===== CTA ===== */
+  .cta-btn {
+    display: inline-block; margin-top: 3rem; padding: 1.3rem 4rem;
+    font-size: 1rem; font-weight: 800; letter-spacing: 0.45em; text-indent: 0.45em;
+    color: var(--bg); background: linear-gradient(90deg, var(--gold), #f5d76e);
+    text-decoration: none; position: relative;
+    clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+    box-shadow: 0 0 50px rgba(212,175,55,0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    opacity: 0; transform: translateY(30px);
+  }
+  .cta-btn:hover { transform: translateY(-3px) !important; box-shadow: 0 0 80px rgba(212,175,55,0.7); }
+  .cta-sub { margin-top: 1.4rem; font-size: 0.7rem; color: #555; letter-spacing: 0.2em; opacity: 0; }
+
+  footer {
+    position: relative; z-index: 2; text-align: center;
+    padding: 8vh 6vw 12vh; color: #444; font-size: 0.72rem;
+    letter-spacing: 0.25em; line-height: 2.4;
+  }
+  footer .small { font-size: 0.62rem; color: #333; }
+
+  .scroll-hint {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);
+    font-size: 0.62rem; letter-spacing: 0.45em; color: #5a628a; z-index: 10;
+    animation: float 2s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+</style>
+</head>
+<body>
+
+  <!-- boot sequence -->
+  <div id="boot">
+    <div class="logs" id="boot-logs"></div>
+    <div class="bar"><i id="boot-bar"></i></div>
+    <div class="ver">OBKAI SYSTEM ver 2.0.26 — BUILD "DOSOKAI"</div>
+  </div>
+
+  <div id="progress"></div>
+  <canvas id="bg-canvas"></canvas>
+  <div class="vignette"></div>
+  <div class="scanlines"></div>
+  <div class="scroll-hint">SCROLL TO REMEMBER ↓</div>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <h1 class="glitch" data-text="杏葉" data-split="chars">杏葉</h1>
+      <p class="tagline">卒業しても終わらない、<strong>優秀な人材の集う場所。</strong></p>
+      <p class="site-name">杏葉硬式庭球会OB会オフィシャルサイト</p>
+    </section>
+
+    <!-- NEWS -->
+    <section>
+      <div class="label">Breaking News</div>
+      <h2 class="reveal" data-split="lines">最新情報</h2>
+      <div class="cards" id="news-cards">
+        <p class="news-status">読み込み中...</p>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section>
+      <div class="label">Join the Network</div>
+      <h2 class="reveal" data-split="lines">さあ、<br>同窓の絆をつなげ。</h2>
+      <p class="body-text">OB・OG名簿への登録、近況のご報告はこちらから。<em>「○○期 氏名」</em>形式でのご登録をお願いしています。</p>
+      <a class="cta-btn" href="#" onclick="alert('（ここにOB・OG会員登録フォームへのリンクが入ります）'); return false;">OB・OG登録</a>
+      <p class="cta-sub">— LINEオープンチャットでもつながれます —</p>
+    </section>
+  </main>
+
+  <footer>
+    慶應義塾大学 杏葉硬式庭球会OB会<br>
+    当サイトの異常なかっこよさに関する苦情は受け付けておりません。<br>
+    <span class="small">© 1965–2026 ANYO HARD TENNIS CLUB ALUMNI ASSOCIATION — POWERED BY 同窓の絆 AND WEBGL</span>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script>
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ============ BOOT SEQUENCE ============ */
+  (function boot() {
+    const lines = [
+      "> INITIALIZING OBKAI SYSTEM...",
+      "> LOADING 杏葉魂 MODULE ............ OK",
+      "> MOUNTING 慶應義塾大学 DRIVER ...... OK",
+      "> CHECKING ラケットの状態 ........... 要交換",
+      "> SYNCING 60周年記念 DATA .......... OK",
+      "> LEGACY PROTOCOL ENGAGED.",
+    ];
+    const logEl = document.getElementById('boot-logs');
+    const barEl = document.getElementById('boot-bar');
+    let i = 0;
+    const iv = setInterval(() => {
+      if (i < lines.length) {
+        logEl.innerHTML += lines[i] + "<br>";
+        barEl.style.width = ((i + 1) / lines.length * 100) + "%";
+        i++;
+      } else {
+        clearInterval(iv);
+        gsap.to('#boot', {
+          opacity: 0, duration: 0.7, delay: 0.4,
+          onComplete() {
+            document.getElementById('boot').style.display = 'none';
+            heroIntro();
+          }
+        });
+      }
+    }, 320);
+  })();
+
+  /* ============ TUNNEL BACKGROUND (Three.js) ============ */
+  (function tunnel() {
+    const canvas = document.getElementById('bg-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x030409, 0.15);
+    const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.01, 1000);
+
+    const points = [];
+    for (let i = 0; i < 14; i++) {
+      points.push(new THREE.Vector3(Math.sin(i * 0.55) * 6, Math.cos(i * 0.42) * 4, i * -14));
+    }
+    const curve = new THREE.CatmullRomCurve3(points);
+
+    const tube = new THREE.Mesh(
+      new THREE.TubeGeometry(curve, 700, 2.8, 24, false),
+      new THREE.MeshBasicMaterial({ color: 0xd4af37, wireframe: true, transparent: true, opacity: 0.4 })
+    );
+    scene.add(tube);
+
+    // golden dust
+    const dustGeo = new THREE.BufferGeometry();
+    const N = 1600, pos = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+      const p = curve.getPointAt(Math.random());
+      pos[i*3] = p.x + (Math.random()-0.5)*5;
+      pos[i*3+1] = p.y + (Math.random()-0.5)*5;
+      pos[i*3+2] = p.z + (Math.random()-0.5)*5;
+    }
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xfff0c0, size: 0.07, transparent: true, opacity: 0.85 }));
+    scene.add(dust);
+
+    let target = 0, cur = 0;
+    function onScroll() {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      target = max > 0 ? scrollY / max : 0;
+      document.getElementById('progress').style.width = (target * 100) + '%';
+    }
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    (function animate(t) {
+      cur += (target - cur) * 0.06;
+      const p = Math.min(cur, 0.999);
+      camera.position.copy(curve.getPointAt(p));
+      camera.lookAt(curve.getPointAt(Math.min(p + 0.02, 1)));
+
+      const hue = (0.12 + cur * 0.75) % 1; // gold -> magenta -> cyan
+      tube.material.color.setHSL(hue, 0.65, 0.55);
+      scene.fog.color.setHSL(hue, 0.5, 0.03);
+      tube.rotation.z = t * 0.00004;
+      dust.rotation.z = -t * 0.00002;
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    })(0);
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+  })();
+
+  /* ============ KINETIC TYPE ============ */
+  function splitChars(el) {
+    const text = el.textContent;
+    el.innerHTML = `<span class="word">${[...text].map(c => `<span class="char">${c}</span>`).join('')}</span>`;
+  }
+  document.querySelectorAll('[data-split="chars"]').forEach(splitChars);
+
+  document.querySelectorAll('[data-split="lines"]').forEach(el => {
+    el.innerHTML = el.innerHTML.split('<br>').map(l => `<span class="line"><span>${l}</span></span>`).join('');
+    gsap.to(el.querySelectorAll('.line > span'), {
+      y: 0, duration: 1, ease: 'power4.out', stagger: 0.12,
+      scrollTrigger: { trigger: el, start: 'top 82%' }
+    });
+  });
+
+  function heroIntro() {
+    gsap.to('.hero .char', { y: 0, rotate: 0, opacity: 1, duration: 1.1, ease: 'power4.out', stagger: 0.07 });
+    gsap.to('.tagline', { opacity: 1, y: 0, duration: 1, delay: 0.7, ease: 'power2.out' });
+    gsap.to('.hero .site-name', { opacity: 1, filter: 'blur(0px)', y: 0, duration: 1.6, delay: 1.6, ease: 'power2.out' });
+
+    // a couple of brief glitch bursts while the title settles in, then stop
+    const h1 = document.querySelector('.hero h1');
+    let bursts = 0;
+    const burstTimer = setInterval(() => {
+      h1.classList.add('glitching');
+      setTimeout(() => h1.classList.remove('glitching'), 120 + Math.random() * 120);
+      bursts++;
+      if (bursts >= 2) clearInterval(burstTimer);
+    }, 700);
+  }
+
+  /* ============ SCROLL REVEALS ============ */
+  gsap.utils.toArray('.body-text, .stat, .cta-btn, .cta-sub').forEach(el => {
+    gsap.to(el, {
+      opacity: 1, y: 0, duration: 1, ease: 'power2.out',
+      stagger: 0.1,
+      scrollTrigger: { trigger: el, start: 'top 86%' }
+    });
+  });
+
+  /* ============ NEWS: load from Google Sheets ============ */
+  (function loadNews() {
+    const SHEET_ID = '13asxQxnk3d3RF9joDjAwpFpT_cN4u3SenPvWHzwci8A';
+    const GID = '0';
+    const FEED_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
+
+    function parseGvizDate(v) {
+      const m = typeof v === 'string' && v.match(/Date\((\d+),(\d+),(\d+)\)/);
+      if (!m) return 0;
+      return new Date(+m[1], +m[2], +m[3]).getTime();
+    }
+    function formatGvizDate(v) {
+      const m = typeof v === 'string' && v.match(/Date\((\d+),(\d+),(\d+)\)/);
+      if (!m) return '';
+      const y = +m[1], mo = +m[2] + 1, d = +m[3];
+      return `${y}.${String(mo).padStart(2, '0')}.${String(d).padStart(2, '0')}`;
+    }
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+    }
+    function safeUrl(u) {
+      return typeof u === 'string' && /^https?:\/\//.test(u) ? u : '#';
+    }
+
+    const container = document.getElementById('news-cards');
+
+    fetch(FEED_URL)
+      .then(res => res.text())
+      .then(text => {
+        const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+        const rows = json.table.rows
+          .map(r => {
+            const c = r.c || [];
+            return {
+              date: c[0] && c[0].v,
+              tag: c[1] && c[1].v,
+              title: c[2] && c[2].v,
+              url: c[3] && c[3].v,
+            };
+          })
+          .filter(item => item.title);
+
+        rows.sort((a, b) => parseGvizDate(b.date) - parseGvizDate(a.date));
+        const latest = rows.slice(0, 4);
+
+        if (latest.length === 0) {
+          container.innerHTML = '<p class="news-status">お知らせはまだありません。</p>';
+          return;
+        }
+
+        container.innerHTML = latest.map(item => `
+          <a class="card" href="${safeUrl(item.url)}" target="_blank" rel="noopener">
+            <span class="tag">${escapeHtml(item.tag)}</span>
+            <h3>${escapeHtml(item.title)}</h3>
+            <span class="date">${formatGvizDate(item.date)}</span>
+          </a>
+        `).join('');
+
+        gsap.to(container.querySelectorAll('.card'), {
+          opacity: 1, y: 0, duration: 1, ease: 'power2.out', stagger: 0.1,
+          scrollTrigger: { trigger: container, start: 'top 86%' }
+        });
+      })
+      .catch(() => {
+        container.innerHTML = '<p class="news-status">お知らせを読み込めませんでした。</p>';
+      });
+  })();
+
+  /* ============ hide scroll hint ============ */
+  ScrollTrigger.create({
+    start: 'top -10%',
+    onEnter: () => gsap.to('.scroll-hint', { opacity: 0, duration: 0.4 }),
+    onLeaveBack: () => gsap.to('.scroll-hint', { opacity: 1, duration: 0.4 }),
+  });
+  </script>
+</body>
+</html>
