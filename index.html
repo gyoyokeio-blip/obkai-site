@@ -333,7 +333,7 @@
 
     // particle tennis ball traveling with the camera
     const ball = new THREE.Group();
-    const BALL_R = 0.55;
+    const BALL_R = 0.35;
 
     // ball body: points scattered on the sphere surface (fluorescent yellow)
     const bodyGeo = new THREE.BufferGeometry();
@@ -386,16 +386,22 @@
       camera.position.copy(curve.getPointAt(p));
       camera.lookAt(curve.getPointAt(Math.min(p + 0.02, 1)));
 
-      // ball rides ahead of the camera, slightly off-center, rolling as we scroll
+      // ball rides ahead of the camera; bounce & horizontal sweep are scroll-driven,
+      // rotation keeps running so it spins in place while idle
       const bp = Math.min(p + 0.014, 1);
       const ballPoint = curve.getPointAt(bp);
       const tangent = curve.getTangentAt(bp);
       const side = new THREE.Vector3().crossVectors(tangent, UP).normalize();
+      const bounce = Math.abs(Math.sin(cur * 60));      // |sin| = repeated bounces off the floor
+      const sweep = Math.sin(cur * 22) * 1.1;           // horizontal drift across the tunnel
       ball.position.copy(ballPoint)
-        .addScaledVector(side, 0.85)
-        .addScaledVector(UP, -0.35 + Math.sin(t * 0.0012) * 0.12);
-      ball.rotation.x = t * 0.0006 + cur * 40;
-      ball.rotation.y = t * 0.0004;
+        .addScaledVector(side, sweep)
+        .addScaledVector(UP, -1.5 + bounce * 1.6);
+      // squash on impact, stretch at the top of the arc
+      const k = Math.max(0, 1 - bounce / 0.22);
+      ball.scale.set(1 + 0.3 * k, 1 - 0.35 * k, 1 + 0.3 * k);
+      ball.rotation.x = t * 0.0011 + cur * 40;
+      ball.rotation.y = t * 0.0007;
 
       const hue = (0.12 + cur * 0.75) % 1; // gold -> magenta -> cyan
       tube.material.color.setHSL(hue, 0.65, 0.55);
