@@ -90,17 +90,6 @@
     text-shadow: 0 0 24px rgba(212,175,55,0.5);
   }
 
-  /* glitch */
-  .glitch { position: relative; display: inline-block; }
-  .glitch::before, .glitch::after {
-    content: attr(data-text);
-    position: absolute; inset: 0;
-    background: inherit; -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
-    clip-path: inset(0 0 0 0); opacity: 0;
-  }
-  .glitching::before { opacity: 0.8; transform: translate(-4px, 2px); clip-path: inset(20% 0 40% 0); filter: drop-shadow(0 0 6px var(--cyan)); }
-  .glitching::after  { opacity: 0.8; transform: translate(4px, -2px);  clip-path: inset(60% 0 10% 0); filter: drop-shadow(0 0 6px var(--magenta)); }
 
   /* ===== generic reveal headings ===== */
   .reveal {
@@ -186,7 +175,7 @@
   <main>
     <!-- HERO -->
     <section class="hero">
-      <h1 class="glitch" data-text="杏葉" data-split="chars">杏葉</h1>
+      <h1 data-split="chars">杏葉</h1>
       <p class="tagline">卒業しても終わらない、<strong>優秀な人材の集う場所。</strong></p>
       <p class="site-name">杏葉硬式庭球会OB会オフィシャルサイト</p>
     </section>
@@ -340,16 +329,6 @@
     gsap.to('.hero .char', { y: 0, rotate: 0, opacity: 1, duration: 1.1, ease: 'power4.out', stagger: 0.07 });
     gsap.to('.tagline', { opacity: 1, y: 0, duration: 1, delay: 0.7, ease: 'power2.out' });
     gsap.to('.hero .site-name', { opacity: 1, filter: 'blur(0px)', y: 0, duration: 1.6, delay: 1.6, ease: 'power2.out' });
-
-    // a couple of brief glitch bursts while the title settles in, then stop
-    const h1 = document.querySelector('.hero h1');
-    let bursts = 0;
-    const burstTimer = setInterval(() => {
-      h1.classList.add('glitching');
-      setTimeout(() => h1.classList.remove('glitching'), 120 + Math.random() * 120);
-      bursts++;
-      if (bursts >= 2) clearInterval(burstTimer);
-    }, 700);
   }
 
   /* ============ SCROLL REVEALS ============ */
