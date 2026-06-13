@@ -142,6 +142,58 @@
   .cta-btn:hover { transform: translateY(-3px) !important; box-shadow: 0 0 80px rgba(212,175,55,0.7); }
   .cta-sub { margin-top: 1.4rem; font-size: 0.7rem; color: #555; letter-spacing: 0.2em; opacity: 0; }
 
+  /* ===== Registration form ===== */
+  #cta-form { width: min(560px, 92vw); }
+  .form-title { font-size: clamp(1.6rem, 5vw, 2.6rem); font-weight: 800; line-height: 1.2; }
+  .form-lead { margin-top: 1rem; font-size: 0.85rem; color: var(--dim); line-height: 1.9; }
+  .reg-form {
+    margin-top: 2.4rem; text-align: left;
+    display: flex; flex-direction: column; gap: 1.3rem;
+  }
+  .field { display: block; border: 0; padding: 0; margin: 0; }
+  .field-label {
+    display: block; font-size: 0.72rem; letter-spacing: 0.25em;
+    color: var(--gold); margin-bottom: 0.55rem;
+  }
+  .field-label .req {
+    font-style: normal; font-size: 0.6rem; letter-spacing: 0.15em;
+    color: var(--magenta); border: 1px solid rgba(255,61,127,0.5);
+    border-radius: 4px; padding: 0.1em 0.45em; margin-left: 0.5em;
+  }
+  .reg-form input[type="text"], .reg-form input[type="email"], .reg-form select {
+    width: 100%; padding: 0.95rem 1.1rem;
+    background: rgba(255,255,255,0.04); color: var(--fg);
+    border: 1px solid rgba(212,175,55,0.25); border-radius: 10px;
+    font-size: 1rem; font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .reg-form input::placeholder { color: #555; }
+  .reg-form input:focus, .reg-form select:focus {
+    outline: none; border-color: var(--gold); box-shadow: 0 0 18px rgba(212,175,55,0.2);
+  }
+  .reg-form select { appearance: none; cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%), linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+    background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%;
+    background-size: 6px 6px, 6px 6px; background-repeat: no-repeat;
+  }
+  .reg-form select option { background: #11131c; color: var(--fg); }
+  .radio-row { display: flex; gap: 2rem; }
+  .radio { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: var(--fg); cursor: pointer; }
+  .radio input { accent-color: var(--gold); width: 18px; height: 18px; }
+  .form-error { color: var(--magenta); font-size: 0.8rem; margin-top: -0.4rem; }
+  .form-actions { display: flex; gap: 1rem; margin-top: 1rem; }
+  .form-btn {
+    flex: 1; padding: 1.1rem 1rem; font-size: 0.95rem; font-weight: 800;
+    letter-spacing: 0.15em; cursor: pointer; border: 0; border-radius: 10px;
+    color: var(--bg); background: linear-gradient(90deg, var(--gold), #f5d76e);
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  }
+  .form-btn:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(212,175,55,0.5); }
+  .form-btn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
+  .form-btn.ghost { background: transparent; color: var(--dim); border: 1px solid rgba(212,175,55,0.35); }
+  .form-btn.ghost:hover { color: var(--fg); border-color: var(--gold); box-shadow: none; }
+  .form-done { margin-top: 2rem; color: var(--gold); font-size: 1rem; letter-spacing: 0.1em; }
+
   /* ===== LINE Open Chat ===== */
   .line-card {
     margin-top: 3.5rem; width: min(420px, 92vw);
@@ -223,12 +275,91 @@
     </section>
 
     <!-- CTA -->
-    <section>
-      <div class="label">Join the Network</div>
-      <h2 class="reveal" data-split="lines">さあ、<br>同窓の絆をつなげ。</h2>
-      <p class="body-text">OB・OG名簿への登録、近況のご報告はこちらから。<em>「○○期 氏名」</em>形式でのご登録をお願いしています。</p>
-      <a class="cta-btn" href="#" onclick="alert('（ここにOB・OG会員登録フォームへのリンクが入ります）'); return false;">OB・OG登録</a>
-      <p class="cta-sub">— LINEオープンチャットでもつながれます —</p>
+    <section id="cta-section">
+      <!-- intro view -->
+      <div id="cta-intro">
+        <div class="label">Join the Network</div>
+        <h2 class="reveal" data-split="lines">さあ、<br>同窓の絆をつなげ。</h2>
+        <p class="body-text">OB・OG名簿への登録、近況のご報告はこちらから。<em>「○○期 氏名」</em>形式でのご登録をお願いしています。</p>
+        <a class="cta-btn" href="#" id="open-form-btn">OB・OG登録</a>
+        <p class="cta-sub">— LINEオープンチャットでもつながれます —</p>
+      </div>
+
+      <!-- form view -->
+      <div id="cta-form" hidden>
+        <div class="label">Registration</div>
+        <h2 class="form-title">OB・OG登録 / 情報更新</h2>
+        <p class="form-lead">メールアドレスで照合し、未登録なら新規登録、登録済みなら情報を更新します。</p>
+        <form id="reg-form" class="reg-form" novalidate>
+          <label class="field">
+            <span class="field-label">氏名</span>
+            <input type="text" name="name" autocomplete="name" placeholder="例）岡田 弘道" />
+          </label>
+          <label class="field">
+            <span class="field-label">期</span>
+            <input type="text" name="term" placeholder="例）40期" />
+          </label>
+          <label class="field">
+            <span class="field-label">メールアドレス <em class="req">必須</em></span>
+            <input type="email" name="email" required autocomplete="email" placeholder="例）obkai@example.com" />
+          </label>
+          <fieldset class="field">
+            <span class="field-label">キャリア相談可否</span>
+            <div class="radio-row">
+              <label class="radio"><input type="radio" name="career" value="可" /> 可</label>
+              <label class="radio"><input type="radio" name="career" value="不可" /> 不可</label>
+            </div>
+          </fieldset>
+          <label class="field">
+            <span class="field-label">業界</span>
+            <select name="industry">
+              <option value="">選択してください</option>
+              <option>IT・通信</option>
+              <option>メーカー・製造</option>
+              <option>商社</option>
+              <option>金融・保険</option>
+              <option>コンサルティング</option>
+              <option>不動産・建設</option>
+              <option>医療・福祉</option>
+              <option>教育</option>
+              <option>マスコミ・広告</option>
+              <option>流通・小売</option>
+              <option>サービス</option>
+              <option>公務・団体</option>
+              <option>学生</option>
+              <option>その他</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">業種</span>
+            <select name="jobtype">
+              <option value="">選択してください</option>
+              <option>営業</option>
+              <option>企画・マーケティング</option>
+              <option>管理・事務</option>
+              <option>技術・研究開発</option>
+              <option>IT・エンジニア</option>
+              <option>専門職（医師・弁護士・会計士等）</option>
+              <option>クリエイティブ</option>
+              <option>経営・役員</option>
+              <option>公務員</option>
+              <option>学生</option>
+              <option>その他</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">所属企業</span>
+            <input type="text" name="company" placeholder="例）株式会社○○" />
+          </label>
+
+          <p class="form-error" id="form-error" hidden></p>
+          <div class="form-actions">
+            <button type="button" class="form-btn ghost" id="back-btn">戻る</button>
+            <button type="submit" class="form-btn" id="submit-btn">登録・更新</button>
+          </div>
+        </form>
+        <p class="form-done" id="form-done" hidden>登録・更新が完了しました。ありがとうございます。</p>
+      </div>
     </section>
 
     <!-- LINE OPEN CHAT -->
@@ -461,6 +592,94 @@
         correctLevel: QRCode.CorrectLevel.M
       });
     }
+  })();
+
+  /* ============ Registration form ============ */
+  (function regForm() {
+    // Apps Script Web App のURL
+    const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_0-wzZN16mH8fg7TjybGfajmq_rCJTezzhChoW8PJo6VcnymkYo10LPvnbE9n-XJi/exec';
+
+    const intro = document.getElementById('cta-intro');
+    const formView = document.getElementById('cta-form');
+    const openBtn = document.getElementById('open-form-btn');
+    const backBtn = document.getElementById('back-btn');
+    const form = document.getElementById('reg-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const errEl = document.getElementById('form-error');
+    const doneEl = document.getElementById('form-done');
+
+    function showForm(show) {
+      intro.hidden = show;
+      formView.hidden = !show;
+      ScrollTrigger.refresh();
+      if (show) formView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    openBtn.addEventListener('click', (e) => { e.preventDefault(); showForm(true); });
+    backBtn.addEventListener('click', () => {
+      showForm(false);
+      form.hidden = false; doneEl.hidden = true; errEl.hidden = true;
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      errEl.hidden = true;
+
+      const email = form.email.value.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errEl.textContent = '有効なメールアドレスを入力してください。';
+        errEl.hidden = false;
+        form.email.focus();
+        return;
+      }
+
+      const data = {
+        name: form.name.value.trim(),
+        term: form.term.value.trim(),
+        email: email,
+        career: (form.querySelector('input[name="career"]:checked') || {}).value || '',
+        industry: form.industry.value,
+        jobtype: form.jobtype.value,
+        company: form.company.value.trim(),
+      };
+
+      if (!GAS_ENDPOINT) {
+        errEl.textContent = '送信先が未設定です。（管理者向け：Apps ScriptのURLを設定してください）';
+        errEl.hidden = false;
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '送信中...';
+
+      // text/plain avoids a CORS preflight against Apps Script
+      fetch(GAS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(data),
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (res && res.ok) {
+            form.hidden = true;
+            doneEl.hidden = false;
+            doneEl.textContent = res.mode === 'update'
+              ? '登録情報を更新しました。ありがとうございます。'
+              : '新規登録が完了しました。ありがとうございます。';
+            doneEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else {
+            throw new Error((res && res.error) || 'unknown');
+          }
+        })
+        .catch(() => {
+          errEl.textContent = '送信に失敗しました。時間をおいて再度お試しください。';
+          errEl.hidden = false;
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '登録・更新';
+        });
+    });
   })();
 
   /* ============ NEWS: load from Google Sheets ============ */
