@@ -127,6 +127,65 @@
   .card h3 { margin: 0.9rem 0 0; font-size: 1.25rem; font-weight: 800; line-height: 1.4; }
   .card .date { display: block; margin-top: 1.4rem; font-size: 0.68rem; color: #555; letter-spacing: 0.2em; }
   .news-status { color: var(--dim); font-size: 0.85rem; letter-spacing: 0.1em; margin-top: 3.5rem; }
+  button.card { font: inherit; width: 100%; }
+
+  /* ===== News detail modal ===== */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgba(3,4,9,0.85); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 5vh 5vw; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    position: relative; width: min(680px, 94vw); max-height: 88vh; overflow-y: auto;
+    background: linear-gradient(160deg, #0d0f18, #07080e);
+    border: 1px solid rgba(212,175,55,0.35); border-radius: 18px;
+    padding: 2.6rem 2.2rem 2.4rem; text-align: left;
+    transform: translateY(20px) scale(0.98); transition: transform 0.3s;
+    box-shadow: 0 0 60px rgba(0,0,0,0.6);
+  }
+  .modal-overlay.open .modal { transform: none; }
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid rgba(212,175,55,0.4); background: transparent; color: var(--gold);
+    font-size: 1.2rem; cursor: pointer; line-height: 1; transition: background 0.2s;
+  }
+  .modal-close:hover { background: rgba(212,175,55,0.15); }
+  .modal .m-tag { font-size: 0.62rem; letter-spacing: 0.4em; color: var(--magenta); }
+  .modal .m-title { margin: 0.8rem 0 0.4rem; font-size: 1.5rem; font-weight: 800; line-height: 1.45; }
+  .modal .m-date { font-size: 0.7rem; color: #666; letter-spacing: 0.2em; }
+  .modal .m-meta { margin-top: 0.6rem; font-size: 0.85rem; color: var(--gold); letter-spacing: 0.08em; }
+  .modal .m-career { margin-top: 0.5rem; font-size: 0.82rem; color: #aab1d6; line-height: 1.7; }
+  .modal .m-body { margin-top: 1.4rem; font-size: 0.95rem; color: #cdd3ee; line-height: 2; white-space: pre-wrap; }
+  .modal .m-link {
+    display: inline-block; margin-top: 1.6rem; padding: 0.8rem 1.8rem;
+    font-size: 0.82rem; font-weight: 700; letter-spacing: 0.1em;
+    color: var(--bg); background: linear-gradient(90deg, var(--gold), #f5d76e);
+    text-decoration: none; border-radius: 8px;
+  }
+  .modal .m-loading { margin-top: 1.4rem; color: var(--dim); font-size: 0.85rem; }
+
+  /* carousel */
+  .carousel { position: relative; margin: 1.4rem 0 0.4rem; border-radius: 12px; overflow: hidden; background: #000; }
+  .carousel-track { display: flex; transition: transform 0.4s ease; }
+  .carousel-slide { min-width: 100%; }
+  .carousel-slide img { width: 100%; display: block; max-height: 56vh; object-fit: contain; background: #000; }
+  .carousel-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 42px; height: 42px; border-radius: 50%; border: 0; cursor: pointer;
+    background: rgba(0,0,0,0.5); color: #fff; font-size: 1.3rem; line-height: 1;
+    display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+  }
+  .carousel-btn:hover { background: rgba(212,175,55,0.8); }
+  .carousel-btn.prev { left: 10px; }
+  .carousel-btn.next { right: 10px; }
+  .carousel-dots { display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.9rem; }
+  .carousel-dots i {
+    width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); cursor: pointer;
+  }
+  .carousel-dots i.active { background: var(--gold); }
 
   /* ===== CTA ===== */
   .cta-btn {
@@ -683,11 +742,16 @@
     });
   })();
 
-  /* ============ NEWS: load from Google Sheets ============ */
+  /* ============ NEWS: load from Google Sheets + detail modal ============ */
   (function loadNews() {
     const SHEET_ID = '13asxQxnk3d3RF9joDjAwpFpT_cN4u3SenPvWHzwci8A';
-    const GID = '0';
-    const FEED_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
+    // OB紹介のドライブ画像一覧を返す Apps Script (登録フォームと同じWebアプリ)
+    const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_0-wzZN16mH8fg7TjybGfajmq_rCJTezzhChoW8PJo6VcnymkYo10LPvnbE9n-XJi/exec';
+
+    const sheetUrl = (sheetName) =>
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+    const gidUrl = (gid) =>
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`;
 
     function parseGvizDate(v) {
       const m = typeof v === 'string' && v.match(/Date\((\d+),(\d+),(\d+)\)/);
@@ -704,42 +768,164 @@
       return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
     }
     function safeUrl(u) {
-      return typeof u === 'string' && /^https?:\/\//.test(u) ? u : '#';
+      return typeof u === 'string' && /^https?:\/\//.test(u) ? u : '';
+    }
+    // gviz レスポンスをセル配列に変換
+    function fetchRowsFrom(url) {
+      return fetch(url)
+        .then(res => res.text())
+        .then(text => {
+          const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+          return (json.table.rows || []).map(r => (r.c || []).map(c => (c ? c.v : null)));
+        });
+    }
+    const fetchRows = (sheetName) => fetchRowsFrom(sheetUrl(sheetName));
+
+    /* ---------- modal ---------- */
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><button class="modal-close" aria-label="閉じる">×</button><div class="modal-content"></div></div>';
+    document.body.appendChild(overlay);
+    const modalContent = overlay.querySelector('.modal-content');
+    function closeModal() { overlay.classList.remove('open'); }
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    overlay.querySelector('.modal-close').addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+    function openModal(html) {
+      modalContent.innerHTML = html;
+      overlay.classList.add('open');
+      overlay.querySelector('.modal').scrollTop = 0;
     }
 
+    /* ---------- carousel ---------- */
+    function buildCarousel(images) {
+      if (!images.length) return '';
+      const slides = images.map(src => `<div class="carousel-slide"><img src="${src}" alt="" loading="lazy"></div>`).join('');
+      const dots = images.length > 1
+        ? `<div class="carousel-dots">${images.map((_, i) => `<i data-i="${i}"${i === 0 ? ' class="active"' : ''}></i>`).join('')}</div>` : '';
+      const arrows = images.length > 1
+        ? '<button class="carousel-btn prev" aria-label="前へ">‹</button><button class="carousel-btn next" aria-label="次へ">›</button>' : '';
+      return `<div class="carousel"><div class="carousel-track">${slides}</div>${arrows}</div>${dots}`;
+    }
+    function initCarousel() {
+      const car = modalContent.querySelector('.carousel');
+      if (!car) return;
+      const track = car.querySelector('.carousel-track');
+      const total = track.children.length;
+      if (total < 2) return;
+      let idx = 0;
+      const dots = modalContent.querySelectorAll('.carousel-dots i');
+      const go = (i) => {
+        idx = (i + total) % total;
+        track.style.transform = `translateX(-${idx * 100}%)`;
+        dots.forEach((d, j) => d.classList.toggle('active', j === idx));
+      };
+      car.querySelector('.prev').addEventListener('click', () => go(idx - 1));
+      car.querySelector('.next').addEventListener('click', () => go(idx + 1));
+      dots.forEach(d => d.addEventListener('click', () => go(+d.dataset.i)));
+    }
+
+    /* ---------- detail openers ---------- */
+    function openCriticalDetail(item) {
+      openModal(`<span class="m-tag">${escapeHtml(item.tag)}</span>
+        <h3 class="m-title">${escapeHtml(item.title)}</h3>
+        <p class="m-date">${formatGvizDate(item.date)}</p>
+        <p class="m-loading">読み込み中...</p>`);
+      fetchRows('CRITICAL UPDATE').then(rows => {
+        const row = rows.find(r => Number(r[0]) === Number(item.number));
+        const body = row ? (row[1] || '') : '';
+        const link = row ? safeUrl(row[2]) : '';
+        openModal(`<span class="m-tag">${escapeHtml(item.tag)}</span>
+          <h3 class="m-title">${escapeHtml(item.title)}</h3>
+          <p class="m-date">${formatGvizDate(item.date)}</p>
+          <div class="m-body">${escapeHtml(body) || '（詳細情報がまだ登録されていません）'}</div>
+          ${link ? `<a class="m-link" href="${link}" target="_blank" rel="noopener">詳しく見る →</a>` : ''}`);
+      }).catch(showDetailError);
+    }
+
+    function openObDetail(item) {
+      openModal(`<span class="m-tag">${escapeHtml(item.tag)}</span>
+        <h3 class="m-title">${escapeHtml(item.title)}</h3>
+        <p class="m-date">${formatGvizDate(item.date)}</p>
+        <p class="m-loading">読み込み中...</p>`);
+      fetchRows('OB紹介').then(rows => {
+        const row = rows.find(r => Number(r[0]) === Number(item.number));
+        const name = row ? (row[1] || '') : '';
+        const term = row ? (row[2] || '') : '';
+        const career = row ? (row[3] || '') : '';
+        const text = row ? (row[4] || '') : '';
+        const folder = row ? (row[5] || '') : '';
+        const meta = [term, name].filter(Boolean).join('　');
+        const baseHtml = `<span class="m-tag">${escapeHtml(item.tag)}</span>
+          <h3 class="m-title">${escapeHtml(item.title)}</h3>
+          ${meta ? `<p class="m-meta">${escapeHtml(meta)}</p>` : ''}
+          ${career ? `<p class="m-career">${escapeHtml(career)}</p>` : ''}
+          <p class="m-date">${formatGvizDate(item.date)}</p>`;
+        // まず本文を表示し、画像は取得でき次第差し込む
+        openModal(`${baseHtml}<div id="ob-images"><p class="m-loading">写真を読み込み中...</p></div>
+          <div class="m-body">${escapeHtml(text) || '（紹介文がまだ登録されていません）'}</div>`);
+        if (folder && GAS_ENDPOINT) {
+          fetch(`${GAS_ENDPOINT}?folder=${encodeURIComponent(folder)}`)
+            .then(r => r.json())
+            .then(r => {
+              const box = modalContent.querySelector('#ob-images');
+              if (!box) return;
+              if (r && r.ok && r.images && r.images.length) {
+                box.innerHTML = buildCarousel(r.images);
+                initCarousel();
+              } else {
+                box.innerHTML = '';
+              }
+            })
+            .catch(() => { const box = modalContent.querySelector('#ob-images'); if (box) box.innerHTML = ''; });
+        } else {
+          const box = modalContent.querySelector('#ob-images');
+          if (box) box.innerHTML = '';
+        }
+      }).catch(showDetailError);
+    }
+
+    function openPlainDetail(item) {
+      openModal(`<span class="m-tag">${escapeHtml(item.tag)}</span>
+        <h3 class="m-title">${escapeHtml(item.title)}</h3>
+        <p class="m-date">${formatGvizDate(item.date)}</p>`);
+    }
+    function showDetailError() {
+      modalContent.querySelector('.m-loading') && (modalContent.querySelector('.m-loading').textContent = '詳細を読み込めませんでした。');
+    }
+
+    function openDetail(item) {
+      if (item.tag === 'CRITICAL UPDATE') openCriticalDetail(item);
+      else if (item.tag === 'OB紹介') openObDetail(item);
+      else openPlainDetail(item);
+    }
+
+    /* ---------- news list (先頭タブ = gid=0) ---------- */
     const container = document.getElementById('news-cards');
-
-    fetch(FEED_URL)
-      .then(res => res.text())
-      .then(text => {
-        const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
-        const rows = json.table.rows
-          .map(r => {
-            const c = r.c || [];
-            return {
-              date: c[0] && c[0].v,
-              tag: c[1] && c[1].v,
-              title: c[2] && c[2].v,
-              url: c[3] && c[3].v,
-            };
-          })
+    fetchRowsFrom(gidUrl(0))
+      .then(rows => {
+        const items = rows
+          .map(c => ({ date: c[0], tag: c[1], title: c[2], number: c[3] }))
           .filter(item => item.title);
-
-        rows.sort((a, b) => parseGvizDate(b.date) - parseGvizDate(a.date));
-        const latest = rows.slice(0, 4);
+        items.sort((a, b) => parseGvizDate(b.date) - parseGvizDate(a.date));
+        const latest = items.slice(0, 4);
 
         if (latest.length === 0) {
           container.innerHTML = '<p class="news-status">お知らせはまだありません。</p>';
           return;
         }
 
-        container.innerHTML = latest.map(item => `
-          <a class="card" href="${safeUrl(item.url)}" target="_blank" rel="noopener">
+        container.innerHTML = latest.map((item, i) => `
+          <button class="card" data-i="${i}">
             <span class="tag">${escapeHtml(item.tag)}</span>
             <h3>${escapeHtml(item.title)}</h3>
             <span class="date">${formatGvizDate(item.date)}</span>
-          </a>
+          </button>
         `).join('');
+
+        container.querySelectorAll('.card').forEach(btn => {
+          btn.addEventListener('click', () => openDetail(latest[+btn.dataset.i]));
+        });
 
         gsap.to(container.querySelectorAll('.card'), {
           opacity: 1, y: 0, duration: 1, ease: 'power2.out', stagger: 0.1,
