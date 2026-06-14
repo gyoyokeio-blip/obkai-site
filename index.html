@@ -3,7 +3,25 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>杏葉硬式庭球会OB会 — LEGACY NEVER ENDS</title>
+<title>杏葉硬式庭球会OB会 オフィシャルサイト</title>
+<meta name="description" content="慶應義塾大学 杏葉硬式庭球会OB会のオフィシャルサイト。先輩とつながる。後輩を支える。OBキャリアネットワーク、参加者募集中。" />
+
+<!-- Open Graph (LINE / Facebook 等での共有時のプレビュー) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="杏葉硬式庭球会OB会" />
+<meta property="og:title" content="杏葉硬式庭球会OB会 オフィシャルサイト" />
+<meta property="og:description" content="先輩とつながる。後輩を支える。OBキャリアネットワーク、参加者募集中。" />
+<meta property="og:url" content="https://gyoyokeio-blip.github.io/obkai-site/" />
+<meta property="og:image" content="https://gyoyokeio-blip.github.io/obkai-site/ogp.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale" content="ja_JP" />
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="杏葉硬式庭球会OB会 オフィシャルサイト" />
+<meta name="twitter:description" content="先輩とつながる。後輩を支える。OBキャリアネットワーク、参加者募集中。" />
+<meta name="twitter:image" content="https://gyoyokeio-blip.github.io/obkai-site/ogp.png" />
 <style>
   :root {
     --bg: #030409;
@@ -203,6 +221,21 @@
 
   /* ===== Registration form ===== */
   #cta-intro { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .benefits {
+    list-style: none; margin: 2.4rem 0 0.6rem; padding: 0;
+    display: flex; flex-direction: column; gap: 1rem; text-align: left;
+  }
+  .benefits li {
+    display: flex; align-items: center; gap: 0.9rem;
+    font-size: clamp(0.95rem, 1.7vw, 1.15rem); color: #cdd3ee; letter-spacing: 0.03em;
+  }
+  .benefits strong { color: #fff; font-weight: 800; }
+  .benefits .b-ico {
+    flex: none; width: 2.1rem; height: 2.1rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; color: var(--gold);
+    border: 1px solid rgba(212,175,55,0.45); background: rgba(212,175,55,0.08);
+  }
   #cta-form { width: min(560px, 92vw); }
   .form-title { font-size: clamp(1.6rem, 5vw, 2.6rem); font-weight: 800; line-height: 1.2; }
   .form-lead { margin-top: 1rem; font-size: 0.85rem; color: var(--dim); line-height: 1.9; }
@@ -341,10 +374,14 @@
       <!-- intro view -->
       <div id="cta-intro">
         <div class="label">Join the Network</div>
-        <h2 class="reveal" data-split="lines">先輩とつながる。<br>後輩を支える。</h2>
-        <p class="body-text"><em>OBキャリアネットワーク</em>の参加者募集中</p>
-        <a class="cta-btn" href="#" id="open-form-btn">OBキャリアネットワークに参加</a>
-        <p class="cta-sub">— LINEオープンチャットでもつながれます —</p>
+        <h2 class="reveal" data-split="lines">卒業しても、<br>杏葉の縁は続く。</h2>
+        <ul class="benefits">
+          <li><span class="b-ico">✉</span><span>周年行事の<strong>案内が届く</strong></span></li>
+          <li><span class="b-ico">⟡</span><span>同期・先輩後輩と<strong>再会できる</strong></span></li>
+          <li><span class="b-ico">◎</span><span>各界のOBに<strong>相談できる</strong>（慶應の縁）</span></li>
+        </ul>
+        <a class="cta-btn" href="#" id="open-form-btn">登録する（約1分）</a>
+        <p class="cta-sub">＼ まずは登録だけ。あとはLINEでつながるだけ ／</p>
       </div>
 
       <!-- form view -->
@@ -382,7 +419,7 @@
     <!-- LINE OPEN CHAT -->
     <section>
       <div class="label">LINE Open Chat</div>
-      <h2 class="reveal" data-split="lines">いつでも、<br>同窓とつながる。</h2>
+      <h2 class="reveal" data-split="lines">同期・先輩・後輩の<br>集う場所。</h2>
       <div class="line-card" id="line-card">
         <span class="line-badge">LINE OPEN CHAT</span>
         <h3>杏葉硬式庭球会OB会<br>オープンチャット</h3>
@@ -401,7 +438,6 @@
 
   <footer>
     慶應義塾大学 杏葉硬式庭球会OB会<br>
-    当サイトの異常なかっこよさに関する苦情は受け付けておりません。<br>
     <span class="small">© 1965–2026 GYOYO HARD TENNIS CLUB ALUMNI ASSOCIATION — POWERED BY 同窓の絆 AND WEBGL</span>
   </footer>
 
