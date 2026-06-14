@@ -252,7 +252,9 @@
   .form-btn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
   .form-btn.ghost { background: transparent; color: var(--dim); border: 1px solid rgba(212,175,55,0.35); }
   .form-btn.ghost:hover { color: var(--fg); border-color: var(--gold); box-shadow: none; }
-  .form-done { margin-top: 2rem; color: var(--gold); font-size: 1rem; letter-spacing: 0.1em; }
+  .form-done { margin-top: 2rem; text-align: center; }
+  .form-done .done-msg { color: var(--gold); font-size: 1.05rem; line-height: 1.9; letter-spacing: 0.08em; }
+  .form-done .line-btn { display: inline-flex; margin-top: 1.6rem; }
 
   /* ===== LINE Open Chat ===== */
   .line-card {
@@ -339,17 +341,17 @@
       <!-- intro view -->
       <div id="cta-intro">
         <div class="label">Join the Network</div>
-        <h2 class="reveal" data-split="lines">さあ、<br>同窓の絆をつなげ。</h2>
-        <p class="body-text">OB・OG名簿の登録にご協力ください。また、現役生・後輩などから<em>キャリア相談</em>を受けても良いという方はご協力をお願いします。<br><span style="font-size:0.85em;color:#777">（幹事経由で連絡先の交換を行う仕組みを想定しております。）</span></p>
-        <a class="cta-btn" href="#" id="open-form-btn">OB・OG登録</a>
+        <h2 class="reveal" data-split="lines">先輩とつながる。<br>後輩を支える。</h2>
+        <p class="body-text"><em>OBキャリアネットワーク</em>の参加者募集中</p>
+        <a class="cta-btn" href="#" id="open-form-btn">OBキャリアネットワークに参加</a>
         <p class="cta-sub">— LINEオープンチャットでもつながれます —</p>
       </div>
 
       <!-- form view -->
       <div id="cta-form" hidden>
         <div class="label">Registration</div>
-        <h2 class="form-title">OB・OG登録 / 情報更新</h2>
-        <p class="form-lead">メールアドレスで照合し、未登録なら新規登録、登録済みなら情報を更新します。</p>
+        <h2 class="form-title">OBキャリアネットワーク参加</h2>
+        <p class="form-lead">まずは下記をご登録ください。メールアドレスで照合し、未登録なら新規登録、登録済みなら情報を更新します。</p>
         <form id="reg-form" class="reg-form" novalidate>
           <label class="field">
             <span class="field-label">氏名</span>
@@ -363,63 +365,17 @@
             <span class="field-label">メールアドレス <em class="req">必須</em></span>
             <input type="email" name="email" required autocomplete="email" placeholder="例）obkai@example.com" />
           </label>
-          <fieldset class="field">
-            <span class="field-label">キャリア相談可否</span>
-            <div class="radio-row">
-              <label class="radio"><input type="radio" name="career" value="可" /> 可</label>
-              <label class="radio"><input type="radio" name="career" value="不可" /> 不可</label>
-            </div>
-          </fieldset>
-          <label class="field">
-            <span class="field-label">業界</span>
-            <select name="industry">
-              <option value="">選択してください</option>
-              <option>IT・通信</option>
-              <option>メーカー・製造</option>
-              <option>商社</option>
-              <option>金融・保険</option>
-              <option>コンサルティング</option>
-              <option>不動産・建設</option>
-              <option>医療・福祉</option>
-              <option>教育</option>
-              <option>マスコミ・広告</option>
-              <option>流通・小売</option>
-              <option>サービス</option>
-              <option>公務・団体</option>
-              <option>経営者・起業</option>
-              <option>学生</option>
-              <option>その他</option>
-            </select>
-          </label>
-          <label class="field">
-            <span class="field-label">職種</span>
-            <select name="jobtype">
-              <option value="">選択してください</option>
-              <option>営業</option>
-              <option>企画・マーケティング</option>
-              <option>管理・事務</option>
-              <option>技術・研究開発</option>
-              <option>IT・エンジニア</option>
-              <option>専門職（医師・弁護士・会計士等）</option>
-              <option>クリエイティブ</option>
-              <option>経営・役員</option>
-              <option>公務員</option>
-              <option>学生</option>
-              <option>その他</option>
-            </select>
-          </label>
-          <label class="field">
-            <span class="field-label">所属企業</span>
-            <input type="text" name="company" placeholder="例）株式会社○○" />
-          </label>
 
           <p class="form-error" id="form-error" hidden></p>
           <div class="form-actions">
             <button type="button" class="form-btn ghost" id="back-btn">戻る</button>
-            <button type="submit" class="form-btn" id="submit-btn">登録・更新</button>
+            <button type="submit" class="form-btn" id="submit-btn">登録</button>
           </div>
         </form>
-        <p class="form-done" id="form-done" hidden>登録・更新が完了しました。ありがとうございます。</p>
+        <div class="form-done" id="form-done" hidden>
+          <p class="done-msg">ご登録ありがとうございます。<br>LINEオープンチャットにご参加ください。</p>
+          <a class="line-btn" href="https://line.me/ti/g2/frPhiYPq_SZDKSpLNRR5Xpt1p_4_t91OkfmN3g?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" rel="noopener">オープンチャットに参加する →</a>
+        </div>
       </div>
     </section>
 
@@ -698,10 +654,6 @@
         name: form.name.value.trim(),
         term: form.term.value.trim(),
         email: email,
-        career: (form.querySelector('input[name="career"]:checked') || {}).value || '',
-        industry: form.industry.value,
-        jobtype: form.jobtype.value,
-        company: form.company.value.trim(),
       };
 
       if (!GAS_ENDPOINT) {
@@ -724,9 +676,6 @@
           if (res && res.ok) {
             form.hidden = true;
             doneEl.hidden = false;
-            doneEl.textContent = res.mode === 'update'
-              ? '登録情報を更新しました。ありがとうございます。'
-              : '新規登録が完了しました。ありがとうございます。';
             doneEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
           } else {
             throw new Error((res && res.error) || 'unknown');
@@ -738,7 +687,7 @@
         })
         .finally(() => {
           submitBtn.disabled = false;
-          submitBtn.textContent = '登録・更新';
+          submitBtn.textContent = '登録';
         });
     });
   })();
