@@ -218,6 +218,13 @@
   }
   .cta-btn:hover { transform: translateY(-3px) !important; box-shadow: 0 0 80px rgba(212,175,55,0.7); }
   .cta-sub { margin-top: 1.4rem; font-size: 0.7rem; color: #555; letter-spacing: 0.2em; opacity: 0; }
+  .soon-btn {
+    display: inline-block; margin-top: 2.4rem; padding: 1.2rem 3rem;
+    font-size: 0.95rem; font-weight: 800; letter-spacing: 0.12em;
+    color: #7a83a8; background: rgba(255,255,255,0.04);
+    border: 1px dashed rgba(212,175,55,0.35); border-radius: 10px;
+    cursor: not-allowed; opacity: 0.75;
+  }
 
   /* ===== Registration form ===== */
   #cta-intro { display: flex; flex-direction: column; align-items: center; text-align: center; }
@@ -390,6 +397,13 @@
         <h2 class="form-title">杏葉ネットワーク登録（現役・OB）</h2>
         <p class="form-lead">まずは下記をご登録ください。メールアドレスで照合し、未登録なら新規登録、登録済みなら情報を更新します。</p>
         <form id="reg-form" class="reg-form" novalidate>
+          <fieldset class="field">
+            <span class="field-label">区分 <em class="req">必須</em></span>
+            <div class="radio-row">
+              <label class="radio"><input type="radio" name="type" value="現役" /> 現役</label>
+              <label class="radio"><input type="radio" name="type" value="OB・OG" /> OB・OG</label>
+            </div>
+          </fieldset>
           <label class="field">
             <span class="field-label">氏名</span>
             <input type="text" name="name" autocomplete="name" placeholder="例）杏葉 太郎" />
@@ -414,6 +428,15 @@
           <a class="line-btn" href="https://line.me/ti/g2/frPhiYPq_SZDKSpLNRR5Xpt1p_4_t91OkfmN3g?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" rel="noopener">オープンチャットに参加する →</a>
         </div>
       </div>
+    </section>
+
+    <!-- OB訪問・募集 -->
+    <section>
+      <div class="label">OB Visit &amp; Recruit</div>
+      <h2 class="reveal" data-split="lines">頼れる先輩に、<br>相談する。</h2>
+      <p class="body-text">現役からの<em>OB訪問・キャリア相談</em>、OBからの<em>アルバイト・人材募集</em>は、幹事がおつなぎします。募集を公開せず、幹事へのメールで個別にご相談いただけます。</p>
+      <button class="soon-btn" type="button" disabled>幹事にメールで相談する（準備中）</button>
+      <p class="cta-sub">— 準備が整い次第、こちらから受け付けます —</p>
     </section>
 
     <!-- LINE OPEN CHAT -->
@@ -678,6 +701,13 @@
       e.preventDefault();
       errEl.hidden = true;
 
+      const type = (form.querySelector('input[name="type"]:checked') || {}).value || '';
+      if (!type) {
+        errEl.textContent = '区分（現役 / OB・OG）を選択してください。';
+        errEl.hidden = false;
+        return;
+      }
+
       const email = form.email.value.trim();
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         errEl.textContent = '有効なメールアドレスを入力してください。';
@@ -687,6 +717,7 @@
       }
 
       const data = {
+        type: type,
         name: form.name.value.trim(),
         term: form.term.value.trim(),
         email: email,
