@@ -44,6 +44,20 @@
     color:#7a83a8; background:rgba(255,255,255,0.04); border:1px dashed rgba(212,175,55,0.35);
     border-radius:9px; cursor:not-allowed;
   }
+  .filters { margin-top:2rem; display:flex; flex-wrap:wrap; gap:0.7rem; align-items:center; }
+  .filters select, .filters input {
+    padding:0.7rem 1rem; background:rgba(255,255,255,0.04); color:var(--fg);
+    border:1px solid rgba(212,175,55,0.25); border-radius:9px; font-size:0.9rem; font-family:inherit;
+  }
+  .filters input { min-width:200px; flex:1; }
+  .filters input::placeholder { color:#555; }
+  .filters select { appearance:none; cursor:pointer; padding-right:2rem;
+    background-image:linear-gradient(45deg,transparent 50%,var(--gold) 50%),linear-gradient(135deg,var(--gold) 50%,transparent 50%);
+    background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%; background-size:6px 6px,6px 6px; background-repeat:no-repeat;
+  }
+  .filters select:focus, .filters input:focus { outline:none; border-color:var(--gold); }
+  .filters option { background:#11131c; }
+  .count { font-size:0.8rem; color:var(--dim); margin-left:auto; white-space:nowrap; }
   [hidden]{ display:none !important; }
 </style>
 </head>
@@ -54,8 +68,21 @@
     <p class="lead">OB訪問・キャリア相談を受け付けている先輩の一覧です（氏名は非公開）。気になる先輩へ、依頼ボタンから相談を申し込めます。連絡先は、先輩が承認した場合のみ交換されます。</p>
     <a class="home" href="./">← トップページへ戻る</a>
 
+    <div class="filters" id="filters" hidden>
+      <select id="f-industry"><option value="">業界：すべて</option></select>
+      <select id="f-jobtype"><option value="">職種：すべて</option></select>
+      <select id="f-consult">
+        <option value="">受入：すべて</option>
+        <option value="可">訪問OK</option>
+        <option value="応相談">応相談</option>
+      </select>
+      <input type="text" id="f-keyword" placeholder="キーワード（会社名・一言・期など）" />
+      <span class="count" id="count"></span>
+    </div>
+
     <p class="state" id="loading">読み込み中...</p>
     <p class="state" id="empty" hidden>現在、公開中のOBはいません。</p>
+    <p class="state" id="noresult" hidden>条件に合うOBが見つかりません。絞り込みを変更してください。</p>
     <p class="state" id="error" hidden>一覧を読み込めませんでした。時間をおいて再度お試しください。</p>
     <div class="grid" id="grid" hidden></div>
   </div>
@@ -66,32 +93,62 @@
     var $ = function (id) { return document.getElementById(id); };
     function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);}); }
     function rowHtml(k,v){ return v ? '<div class="row"><span class="k">'+k+'</span><span class="v">'+esc(v)+'</span></div>' : ''; }
+    function uniq(arr){ return Array.from(new Set(arr.filter(Boolean))).sort(function(a,b){return String(a).localeCompare(String(b),'ja',{numeric:true});}); }
+    function fillSelect(sel, values){ values.forEach(function(v){ var o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); }); }
+
+    var ALL = [];
+
+    function cardHtml(o){
+      var badge = o.consult === '応相談'
+        ? '<span class="badge maybe">応相談</span>'
+        : '<span class="badge ok">訪問OK</span>';
+      return '<div class="card">'
+        + '<div class="top"><span class="term">'+esc(o.term||'')+(o.term?'期':'')+'</span>'+badge+'</div>'
+        + '<div class="rows">'
+        +   rowHtml('業界', o.industry)
+        +   rowHtml('職種', o.jobtype)
+        +   rowHtml('会社', o.company)
+        +   rowHtml('性別', o.gender)
+        + '</div>'
+        + (o.intro ? '<div class="intro">'+esc(o.intro)+'</div>' : '')
+        + '<button class="req-btn" type="button" disabled data-pubid="'+esc(o.pubid)+'">OB訪問を依頼する（準備中）</button>'
+        + '</div>';
+    }
+
+    function applyFilters(){
+      var fi = $('f-industry').value, fj = $('f-jobtype').value, fc = $('f-consult').value;
+      var kw = $('f-keyword').value.trim().toLowerCase();
+      var filtered = ALL.filter(function(o){
+        if (fi && o.industry !== fi) return false;
+        if (fj && o.jobtype !== fj) return false;
+        if (fc && o.consult !== fc) return false;
+        if (kw) {
+          var hay = ((o.company||'')+' '+(o.intro||'')+' '+(o.industry||'')+' '+(o.jobtype||'')+' '+(o.term||'')).toLowerCase();
+          if (hay.indexOf(kw) < 0) return false;
+        }
+        return true;
+      });
+      var grid = $('grid');
+      $('count').textContent = filtered.length + ' / ' + ALL.length + ' 件';
+      if (!filtered.length) { grid.hidden = true; $('noresult').hidden = false; return; }
+      $('noresult').hidden = true;
+      grid.innerHTML = filtered.map(cardHtml).join('');
+      grid.hidden = false;
+    }
 
     fetch(GAS_ENDPOINT + '?action=oblist')
       .then(function(r){ return r.json(); })
       .then(function(res){
         $('loading').hidden = true;
         if (!res || !res.ok) { $('error').hidden = false; return; }
-        var list = res.list || [];
-        if (!list.length) { $('empty').hidden = false; return; }
-        var grid = $('grid');
-        grid.innerHTML = list.map(function(o){
-          var badge = o.consult === '応相談'
-            ? '<span class="badge maybe">応相談</span>'
-            : '<span class="badge ok">訪問OK</span>';
-          return '<div class="card">'
-            + '<div class="top"><span class="term">'+esc(o.term||'')+(o.term?'期':'')+'</span>'+badge+'</div>'
-            + '<div class="rows">'
-            +   rowHtml('業界', o.industry)
-            +   rowHtml('職種', o.jobtype)
-            +   rowHtml('会社', o.company)
-            +   rowHtml('性別', o.gender)
-            + '</div>'
-            + (o.intro ? '<div class="intro">'+esc(o.intro)+'</div>' : '')
-            + '<button class="req-btn" type="button" disabled data-pubid="'+esc(o.pubid)+'">OB訪問を依頼する（準備中）</button>'
-            + '</div>';
-        }).join('');
-        grid.hidden = false;
+        ALL = res.list || [];
+        if (!ALL.length) { $('empty').hidden = false; return; }
+        fillSelect($('f-industry'), uniq(ALL.map(function(o){return o.industry;})));
+        fillSelect($('f-jobtype'),  uniq(ALL.map(function(o){return o.jobtype;})));
+        $('filters').hidden = false;
+        ['f-industry','f-jobtype','f-consult'].forEach(function(id){ $(id).addEventListener('change', applyFilters); });
+        $('f-keyword').addEventListener('input', applyFilters);
+        applyFilters();
       })
       .catch(function(){ $('loading').hidden = true; $('error').hidden = false; });
   })();
