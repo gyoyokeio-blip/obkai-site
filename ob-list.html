@@ -125,7 +125,7 @@
       <h2>OB訪問を依頼する</h2>
       <p class="sub" id="mtarget"></p>
       <form class="mform" id="rform" novalidate>
-        <div><span class="field-label">期</span><input type="text" name="term" placeholder="例）48期" /></div>
+        <div><span class="field-label">期</span><input type="text" name="term" inputmode="numeric" placeholder="例）48（数字のみ）" oninput="this.value=this.value.replace(/[^0-9]/g,'')" /></div>
         <div><span class="field-label">学年</span>
           <select name="grade">
             <option value="">選択してください</option>
@@ -162,12 +162,13 @@
 
     var ALL = [];
 
+    function termLabel(t){ t = String(t==null?'':t).replace(/期\s*$/,''); return t ? esc(t)+'期' : ''; }
     function cardHtml(o){
       var badge = o.consult === '応相談'
         ? '<span class="badge maybe">応相談</span>'
         : '<span class="badge ok">訪問OK</span>';
       return '<div class="card">'
-        + '<div class="top"><span class="term">'+esc(o.term||'')+(o.term?'期':'')+'</span>'+badge+'</div>'
+        + '<div class="top"><span class="term">'+termLabel(o.term)+'</span>'+badge+'</div>'
         + '<div class="rows">'
         +   rowHtml('業界', o.industry)
         +   rowHtml('職種', o.jobtype)
@@ -204,7 +205,8 @@
     var ov = $('ov'), rform = $('rform'), currentPubid = '';
     function openModal(btn){
       currentPubid = btn.getAttribute('data-pubid');
-      $('mtarget').textContent = '相手：' + (btn.getAttribute('data-term')||'') + '期 ／ ' + (btn.getAttribute('data-industry')||'');
+      var tt = (btn.getAttribute('data-term')||'').replace(/期\s*$/,'');
+      $('mtarget').textContent = '相手：' + (tt?tt+'期':'') + ' ／ ' + (btn.getAttribute('data-industry')||'');
       rform.hidden = false; $('mdone').hidden = true; $('merror').hidden = true; rform.reset();
       ov.classList.add('open');
     }
@@ -247,6 +249,8 @@
         if (!res || !res.ok) { $('error').hidden = false; return; }
         ALL = res.list || [];
         if (!ALL.length) { $('empty').hidden = false; return; }
+        var termNum = function(t){ return parseInt(String(t==null?'':t).replace(/[^0-9]/g,''),10) || 0; };
+        ALL.sort(function(a,b){ return termNum(b.term) - termNum(a.term); }); // 期の大きい順
         fillSelect($('f-industry'), uniq(ALL.map(function(o){return o.industry;})));
         fillSelect($('f-jobtype'),  uniq(ALL.map(function(o){return o.jobtype;})));
         $('filters').hidden = false;
