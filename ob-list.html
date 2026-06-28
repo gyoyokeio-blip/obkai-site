@@ -125,7 +125,7 @@
       <h2>OB訪問を依頼する</h2>
       <p class="sub" id="mtarget"></p>
       <form class="mform" id="rform" novalidate>
-        <div><span class="field-label">期</span><input type="text" name="term" inputmode="numeric" placeholder="例）48（数字のみ）" oninput="this.value=this.value.replace(/[^0-9]/g,'')" /></div>
+        <div><span class="field-label">期</span><input type="text" name="term" inputmode="numeric" placeholder="例）60（数字のみ）" oninput="this.value=this.value.replace(/[^0-9]/g,'')" /></div>
         <div><span class="field-label">学年</span>
           <select name="grade">
             <option value="">選択してください</option>
@@ -136,11 +136,11 @@
         <div><span class="field-label">学部</span><input type="text" name="faculty" placeholder="例）経済学部" /></div>
         <div><span class="field-label">メールアドレス <em class="req">必須</em></span><input type="email" name="studentEmail" placeholder="例）you@keio.jp" /></div>
         <div><span class="field-label">相談内容 <em class="req">必須</em></span><textarea name="topic" placeholder="例）金融業界の働き方について伺いたいです。"></textarea></div>
-        <div><span class="field-label">希望方法</span>
+        <div><span class="field-label">希望方法（複数選択可）</span>
           <div class="radio-row">
-            <label class="radio"><input type="radio" name="method" value="オンライン" /> オンライン（Web会議）</label>
-            <label class="radio"><input type="radio" name="method" value="対面" /> 対面</label>
-            <label class="radio"><input type="radio" name="method" value="メール・チャット" /> メール・チャット</label>
+            <label class="radio"><input type="checkbox" name="method" value="オンライン" /> オンライン（Web会議）</label>
+            <label class="radio"><input type="checkbox" name="method" value="対面" /> 対面</label>
+            <label class="radio"><input type="checkbox" name="method" value="メール・チャット" /> メール・チャット</label>
           </div>
         </div>
         <div><span class="field-label">希望日時</span><input type="text" name="datetime" placeholder="例）平日夜、または ○月○日 19時〜" /></div>
@@ -228,7 +228,7 @@
         action:'request', ob:currentPubid,
         term:rform.term.value.trim(), grade:rform.grade.value, faculty:rform.faculty.value.trim(),
         studentEmail:email, topic:rform.topic.value.trim(),
-        method:(rform.querySelector('input[name="method"]:checked')||{}).value||'',
+        method:Array.prototype.slice.call(rform.querySelectorAll('input[name="method"]:checked')).map(function(c){return c.value;}).join('、'),
         datetime:rform.datetime.value.trim()
       };
       var btn = $('msubmit'); btn.disabled = true; btn.textContent = '送信中...';
