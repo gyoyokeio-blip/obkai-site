@@ -44,6 +44,37 @@
     color:#7a83a8; background:rgba(255,255,255,0.04); border:1px dashed rgba(212,175,55,0.35);
     border-radius:9px; cursor:not-allowed;
   }
+  .req-btn.active { color:var(--bg); background:linear-gradient(90deg,var(--gold),#f5d76e); border:0; cursor:pointer; transition:transform .15s, box-shadow .15s; }
+  .req-btn.active:hover { transform:translateY(-2px); box-shadow:0 0 28px rgba(212,175,55,0.4); }
+
+  /* request modal */
+  .overlay { position:fixed; inset:0; z-index:60; background:rgba(3,4,9,0.85); backdrop-filter:blur(8px);
+    display:flex; align-items:center; justify-content:center; padding:5vh 5vw; opacity:0; pointer-events:none; transition:opacity .3s; }
+  .overlay.open { opacity:1; pointer-events:auto; }
+  .modal { position:relative; width:min(560px,96vw); max-height:90vh; overflow-y:auto;
+    background:linear-gradient(160deg,#0d0f18,#07080e); border:1px solid rgba(212,175,55,0.35);
+    border-radius:16px; padding:2.4rem 2rem; text-align:left; }
+  .modal h2 { font-size:1.3rem; font-weight:800; }
+  .modal .sub { margin-top:0.5rem; font-size:0.82rem; color:var(--dim); line-height:1.8; }
+  .modal-close { position:absolute; top:0.9rem; right:0.9rem; width:36px; height:36px; border-radius:50%;
+    border:1px solid rgba(212,175,55,0.4); background:transparent; color:var(--gold); font-size:1.2rem; cursor:pointer; }
+  .mform { margin-top:1.8rem; display:flex; flex-direction:column; gap:1.1rem; }
+  .mform .field-label { display:block; font-size:0.72rem; letter-spacing:0.25em; color:var(--gold); margin-bottom:0.5rem; }
+  .mform .field-label .req { font-style:normal; font-size:0.6rem; color:var(--magenta); border:1px solid rgba(255,61,127,0.5); border-radius:4px; padding:0.1em 0.45em; margin-left:0.5em; }
+  .mform input, .mform select, .mform textarea { width:100%; padding:0.85rem 1rem; background:rgba(255,255,255,0.04); color:var(--fg);
+    border:1px solid rgba(212,175,55,0.25); border-radius:9px; font-size:0.95rem; font-family:inherit; }
+  .mform textarea { min-height:90px; resize:vertical; line-height:1.6; }
+  .mform input:focus, .mform select:focus, .mform textarea:focus { outline:none; border-color:var(--gold); }
+  .mform select { appearance:none; cursor:pointer; }
+  .mform .radio-row { display:flex; flex-wrap:wrap; gap:1rem; }
+  .mform .radio { display:flex; align-items:center; gap:0.45rem; font-size:0.9rem; cursor:pointer; }
+  .mform .radio input { width:18px; height:18px; accent-color:var(--gold); }
+  .mbtn { margin-top:0.4rem; padding:1.1rem; font-size:0.95rem; font-weight:800; letter-spacing:0.12em; color:var(--bg);
+    background:linear-gradient(90deg,var(--gold),#f5d76e); border:0; border-radius:10px; cursor:pointer; }
+  .mbtn:disabled { opacity:0.5; cursor:default; }
+  .mmsg { font-size:0.85rem; line-height:1.7; }
+  .mmsg.err { color:var(--magenta); }
+  .mmsg.ok { color:var(--gold); margin-top:1rem; }
   .filters { margin-top:2rem; display:flex; flex-wrap:wrap; gap:0.7rem; align-items:center; }
   .filters select, .filters input {
     padding:0.7rem 1rem; background:rgba(255,255,255,0.04); color:var(--fg);
@@ -87,6 +118,39 @@
     <div class="grid" id="grid" hidden></div>
   </div>
 
+  <!-- request modal -->
+  <div class="overlay" id="ov">
+    <div class="modal">
+      <button class="modal-close" id="mclose" aria-label="閉じる">×</button>
+      <h2>OB訪問を依頼する</h2>
+      <p class="sub" id="mtarget"></p>
+      <form class="mform" id="rform" novalidate>
+        <div><span class="field-label">期</span><input type="text" name="term" placeholder="例）48期" /></div>
+        <div><span class="field-label">学年</span>
+          <select name="grade">
+            <option value="">選択してください</option>
+            <option>学部1年</option><option>学部2年</option><option>学部3年</option><option>学部4年</option>
+            <option>修士1年</option><option>修士2年</option><option>その他</option>
+          </select>
+        </div>
+        <div><span class="field-label">学部</span><input type="text" name="faculty" placeholder="例）経済学部" /></div>
+        <div><span class="field-label">メールアドレス <em class="req">必須</em></span><input type="email" name="studentEmail" placeholder="例）you@keio.jp" /></div>
+        <div><span class="field-label">相談内容 <em class="req">必須</em></span><textarea name="topic" placeholder="例）金融業界の働き方について伺いたいです。"></textarea></div>
+        <div><span class="field-label">希望方法</span>
+          <div class="radio-row">
+            <label class="radio"><input type="radio" name="method" value="オンライン" /> オンライン（Web会議）</label>
+            <label class="radio"><input type="radio" name="method" value="対面" /> 対面</label>
+            <label class="radio"><input type="radio" name="method" value="メール・チャット" /> メール・チャット</label>
+          </div>
+        </div>
+        <div><span class="field-label">希望日時</span><input type="text" name="datetime" placeholder="例）平日夜、または ○月○日 19時〜" /></div>
+        <p class="mmsg err" id="merror" hidden></p>
+        <button type="submit" class="mbtn" id="msubmit">この内容で依頼する</button>
+      </form>
+      <p class="mmsg ok" id="mdone" hidden>依頼を送信しました。先輩が承認すると、メールで連絡先が届きます。</p>
+    </div>
+  </div>
+
   <script>
   (function () {
     var GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_0-wzZN16mH8fg7TjybGfajmq_rCJTezzhChoW8PJo6VcnymkYo10LPvnbE9n-XJi/exec';
@@ -111,7 +175,7 @@
         +   rowHtml('性別', o.gender)
         + '</div>'
         + (o.intro ? '<div class="intro">'+esc(o.intro)+'</div>' : '')
-        + '<button class="req-btn" type="button" disabled data-pubid="'+esc(o.pubid)+'">OB訪問を依頼する（準備中）</button>'
+        + '<button class="req-btn active" type="button" data-pubid="'+esc(o.pubid)+'" data-term="'+esc(o.term||'')+'" data-industry="'+esc(o.industry||'')+'">OB訪問を依頼する</button>'
         + '</div>';
     }
 
@@ -135,6 +199,46 @@
       grid.innerHTML = filtered.map(cardHtml).join('');
       grid.hidden = false;
     }
+
+    /* ---- request modal ---- */
+    var ov = $('ov'), rform = $('rform'), currentPubid = '';
+    function openModal(btn){
+      currentPubid = btn.getAttribute('data-pubid');
+      $('mtarget').textContent = '相手：' + (btn.getAttribute('data-term')||'') + '期 ／ ' + (btn.getAttribute('data-industry')||'');
+      rform.hidden = false; $('mdone').hidden = true; $('merror').hidden = true; rform.reset();
+      ov.classList.add('open');
+    }
+    function closeModal(){ ov.classList.remove('open'); }
+    $('mclose').addEventListener('click', closeModal);
+    ov.addEventListener('click', function(e){ if (e.target === ov) closeModal(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeModal(); });
+    $('grid').addEventListener('click', function(e){
+      var btn = e.target.closest('.req-btn.active');
+      if (btn) openModal(btn);
+    });
+    rform.addEventListener('submit', function(e){
+      e.preventDefault();
+      var err = $('merror'); err.hidden = true;
+      var email = rform.studentEmail.value.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='有効なメールアドレスを入力してください。'; err.hidden=false; return; }
+      if (!rform.topic.value.trim()) { err.textContent='相談内容をご記入ください。'; err.hidden=false; return; }
+      var data = {
+        action:'request', ob:currentPubid,
+        term:rform.term.value.trim(), grade:rform.grade.value, faculty:rform.faculty.value.trim(),
+        studentEmail:email, topic:rform.topic.value.trim(),
+        method:(rform.querySelector('input[name="method"]:checked')||{}).value||'',
+        datetime:rform.datetime.value.trim()
+      };
+      var btn = $('msubmit'); btn.disabled = true; btn.textContent = '送信中...';
+      fetch(GAS_ENDPOINT, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(data) })
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          if (res && res.ok) { rform.hidden = true; $('mdone').hidden = false; }
+          else { throw new Error((res&&res.error)||'unknown'); }
+        })
+        .catch(function(){ err.textContent='送信に失敗しました。時間をおいて再度お試しください。'; err.hidden=false; })
+        .finally(function(){ btn.disabled=false; btn.textContent='この内容で依頼する'; });
+    });
 
     fetch(GAS_ENDPOINT + '?action=oblist')
       .then(function(r){ return r.json(); })

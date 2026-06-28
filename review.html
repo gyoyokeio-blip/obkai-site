@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OB訪問依頼の確認 — 杏葉硬式庭球会</title>
+<meta name="robots" content="noindex" />
+<style>
+  :root { --bg:#05060c; --fg:#eef1ff; --gold:#d4af37; --magenta:#ff3d7f; --dim:#8a93b8; --green:#7CFFB2; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: radial-gradient(ellipse at 70% 0%, rgba(212,175,55,0.10), transparent 50%), linear-gradient(135deg,#05060c,#03040a);
+    min-height:100vh; color:var(--fg); font-family:"Helvetica Neue","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    -webkit-font-smoothing:antialiased; display:flex; justify-content:center; padding:6vh 5vw 12vh;
+  }
+  .wrap { width:min(560px,100%); }
+  .label { font-size:0.72rem; letter-spacing:0.45em; color:var(--gold); text-transform:uppercase; }
+  h1 { margin-top:1rem; font-size:clamp(1.5rem,5vw,2.2rem); font-weight:800; }
+  .state { color:var(--dim); font-size:0.95rem; margin-top:2.5rem; line-height:1.8; }
+  .card { margin-top:2rem; padding:1.6rem 1.5rem; border:1px solid rgba(212,175,55,0.25); border-radius:14px;
+    background:linear-gradient(160deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015)); }
+  .row { display:flex; gap:0.8rem; padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.07); font-size:0.95rem; }
+  .row:last-child { border-bottom:0; }
+  .row .k { color:var(--gold); flex:none; width:6em; font-size:0.8rem; letter-spacing:0.05em; padding-top:2px; }
+  .row .v { color:var(--fg); white-space:pre-wrap; line-height:1.7; }
+  .note { margin-top:1.2rem; font-size:0.8rem; color:var(--dim); line-height:1.8; }
+  .actions { margin-top:1.8rem; display:flex; gap:1rem; }
+  .btn { flex:1; padding:1.1rem 1rem; font-size:0.95rem; font-weight:800; letter-spacing:0.1em; border:0; border-radius:10px; cursor:pointer; }
+  .btn.approve { color:var(--bg); background:linear-gradient(90deg,var(--gold),#f5d76e); }
+  .btn.decline { color:var(--dim); background:transparent; border:1px solid rgba(212,175,55,0.35); }
+  .btn:disabled { opacity:0.5; cursor:default; }
+  .result { margin-top:2rem; font-size:1rem; line-height:1.8; }
+  .result.ok { color:var(--green); }
+  .result.gold { color:var(--gold); }
+  .err { color:var(--magenta); }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="label">OB Visit Request</div>
+    <h1>OB訪問依頼の確認</h1>
+
+    <p class="state" id="loading">読み込み中...</p>
+    <p class="state err" id="invalid" hidden>リンクが正しくないか、有効期限が切れています。</p>
+
+    <div id="view" hidden>
+      <div class="card" id="detail"></div>
+      <p class="note">承認すると、依頼者へあなたのメールアドレスが共有され、あなたにも依頼者の連絡先が届きます。<br>見送る場合、連絡先は一切共有されません。</p>
+      <div class="actions" id="actions">
+        <button class="btn decline" id="declineBtn" type="button">見送る</button>
+        <button class="btn approve" id="approveBtn" type="button">承認する</button>
+      </div>
+      <p class="result" id="result" hidden></p>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbx_0-wzZN16mH8fg7TjybGfajmq_rCJTezzhChoW8PJo6VcnymkYo10LPvnbE9n-XJi/exec';
+    var $ = function (id) { return document.getElementById(id); };
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);}); }
+    function row(k,v){ return v ? '<div class="row"><span class="k">'+k+'</span><span class="v">'+esc(v)+'</span></div>' : ''; }
+
+    var token = new URLSearchParams(location.search).get('t') || '';
+    if (!token) { $('loading').hidden = true; $('invalid').hidden = false; return; }
+
+    function showResult(cls, text){ $('actions').hidden = true; var r=$('result'); r.className='result '+cls; r.textContent=text; r.hidden=false; }
+
+    fetch(GAS_ENDPOINT + '?action=reqinfo&t=' + encodeURIComponent(token))
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        $('loading').hidden = true;
+        if (!res || !res.ok) { $('invalid').hidden = false; return; }
+        $('view').hidden = false;
+        $('detail').innerHTML =
+          row('依頼者', (res.term?res.term+'期 ':'') + (res.grade||'') + (res.faculty?(' / '+res.faculty):'')) +
+          row('相談内容', res.topic) + row('希望方法', res.method) + row('希望日時', res.datetime);
+        if (res.status === '承認済') showResult('ok','この依頼は承認済みです。依頼者へ連絡先を通知しました。');
+        else if (res.status === '見送り') showResult('gold','この依頼は見送りとして処理済みです。');
+      })
+      .catch(function(){ $('loading').hidden = true; $('invalid').hidden = false; });
+
+    function decide(action){
+      $('approveBtn').disabled = true; $('declineBtn').disabled = true;
+      fetch(GAS_ENDPOINT, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({ action:action, token:token }) })
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          if (res && res.ok) {
+            if (res.already) showResult('gold','この依頼は既に処理済みです（' + (res.status||'') + '）。');
+            else if (action==='approve') showResult('ok','承認しました。依頼者へあなたの連絡先を通知しました。あなたにも依頼者の連絡先をメールでお送りしました。');
+            else showResult('gold','見送りとして処理しました。連絡先は共有していません。');
+          } else { throw new Error(); }
+        })
+        .catch(function(){ $('approveBtn').disabled=false; $('declineBtn').disabled=false; var r=$('result'); r.className='result err'; r.textContent='処理に失敗しました。再度お試しください。'; r.hidden=false; });
+    }
+    $('approveBtn').addEventListener('click', function(){ decide('approve'); });
+    $('declineBtn').addEventListener('click', function(){ decide('decline'); });
+  })();
+  </script>
+</body>
+</html>
