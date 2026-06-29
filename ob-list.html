@@ -134,7 +134,7 @@
           </select>
         </div>
         <div><span class="field-label">学部</span><input type="text" name="faculty" placeholder="例）経済学部" /></div>
-        <div><span class="field-label">メールアドレス <em class="req">必須</em></span><input type="email" name="studentEmail" placeholder="例）you@keio.jp" /></div>
+        <div><span class="field-label">メールアドレス <em class="req">必須</em></span><input type="email" name="studentEmail" placeholder="例）you@keio.jp" /><span class="sub" style="display:block;margin-top:0.4rem;">※会員登録時のメールアドレスをご入力ください（未登録の方は先にご登録を）。</span></div>
         <div><span class="field-label">相談内容 <em class="req">必須</em></span><textarea name="topic" placeholder="例）金融業界の働き方について伺いたいです。"></textarea></div>
         <div><span class="field-label">希望方法（複数選択可）</span>
           <div class="radio-row">
@@ -235,8 +235,12 @@
       fetch(GAS_ENDPOINT, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(data) })
         .then(function(r){ return r.json(); })
         .then(function(res){
-          if (res && res.ok) { rform.hidden = true; $('mdone').hidden = false; }
-          else { throw new Error((res&&res.error)||'unknown'); }
+          if (res && res.ok) { rform.hidden = true; $('mdone').hidden = false; return; }
+          if (res && res.error === 'not_member') {
+            err.innerHTML = 'このメールアドレスは会員登録されていません。<br>先に<a href="./" style="color:var(--gold)">トップページ</a>から「登録」をお願いします（OB・現役どちらも）。';
+            err.hidden = false; return;
+          }
+          err.textContent = '送信に失敗しました。時間をおいて再度お試しください。'; err.hidden = false;
         })
         .catch(function(){ err.textContent='送信に失敗しました。時間をおいて再度お試しください。'; err.hidden=false; })
         .finally(function(){ btn.disabled=false; btn.textContent='この内容で依頼する'; });
